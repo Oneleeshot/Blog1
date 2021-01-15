@@ -1,12 +1,11 @@
 from django.shortcuts import render, redirect
-from django.views.generic import View
 from .models import Post, Tag
-from .utils import *
-from .forms import TagForm, PostForm
-from django.urls import reverse
+# from .forms import TagForm, PostForm
+from django.urls import reverse, reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.views.generic import DetailView, CreateView, DeleteView, UpdateView
 
 
 def posts_list(request):
@@ -40,28 +39,31 @@ def posts_list(request):
     return render(request, 'blog/index.html', context=context)
 
 
-class PostDetail(ObjectDetailMixin, View):
+class PostDetailView(DetailView):
     model = Post
-    template = 'blog/post_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
 
 
-class PostCreate(LoginRequiredMixin, ObjectCreateMixin, View):
-    form_model = PostForm
-    template = 'blog/post_create_form.html'
+class PostCreate(LoginRequiredMixin, CreateView):
+    model = Post
+    fields = ['title', 'slug', 'body', 'tags']
     raise_exception = True
 
 
-class PostUpdate(LoginRequiredMixin, ObjectUpdateMixin, View):
+class PostUpdate(LoginRequiredMixin, UpdateView):
     model = Post
-    model_form = PostForm
-    template = 'blog/post_update_form.html'
+    fields = ['title', 'slug', 'body', 'tags']
+    template_name_suffix = '_update_form'
     raise_exception = True
 
 
-class PostDelete(LoginRequiredMixin, ObjectDeleteMixin, View):
+class PostDelete(LoginRequiredMixin, DeleteView):
     model = Post
-    template = 'blog/post_delete_form.html'
-    redirect_url = 'posts_list_url'
+    template_name_suffix = '_delete_form'
+    success_url = reverse_lazy('posts_list_url')
     raise_exception = True
 
 
@@ -71,26 +73,29 @@ def tags_list(request):
                   context={'tags': tags})
 
 
-class TagCreate(LoginRequiredMixin, ObjectCreateMixin, View):
-    form_model = TagForm
-    template = 'blog/tag_create.html'
+class TagCreate(LoginRequiredMixin, CreateView):
+    model = Tag
+    fields = ['title', 'slug']
     raise_exception = True
 
 
-class TagUpdate(LoginRequiredMixin, ObjectUpdateMixin, View):
+class TagUpdate(LoginRequiredMixin, UpdateView):
     model = Tag
-    model_form = TagForm
-    template = 'blog/tag_update_form.html'
+    fields = ['title', 'slug']
+    template_name_suffix = '_update_form'
     raise_exception = True
 
 
-class TagDelete(LoginRequiredMixin, ObjectDeleteMixin, View):
+class TagDelete(LoginRequiredMixin, DeleteView):
     model = Tag
-    template = 'blog/tag_delete_form.html'
-    redirect_url = 'tags_list_url'
+    template_name_suffix = '_delete_form'
+    success_url = reverse_lazy('tags_list_url')
     raise_exception = True
 
 
-class TagDetail(ObjectDetailMixin, View):
+class TagDetailView(DetailView):
     model = Tag
-    template = 'blog/tag_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
